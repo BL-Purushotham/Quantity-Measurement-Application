@@ -1,38 +1,67 @@
 package com.bridgelabz;
 
 
-public class QuantityMeasurementApp {
-    // Creating inner class
-    static class Feet{
-        private final double value;
+// Enum represents all supported length units
+// Each unit knows how to convert itself to the base unit (FEET)
+enum LengthUnit{
+    // FEET is base unit → conversion factor = 1.0
+    FEET(1.0),
+    INCH(1.0 / 12.0);
 
-        // constructor
-        public Feet(double value){
-            this.value = value;
-        }
+    // Each enum constant stores its conversion factor to FEET
+    private final double conversionFactorToFeet;
 
-        // override equals - When we override equals we need to take parameter as
-        // OBJECT(Because equals() must work for ALL objects.)
-        // if we don't do that then it is overloading not overriding.
-        @Override
-        public boolean equals(Object obj){
-            if(this == obj){
-                System.out.println("here it comes");
-                return true;
-            }
-
-            if(obj == null || getClass() != obj.getClass()){
-                return false;
-            }
-
-            Feet other = (Feet) obj;
-
-            return Double.compare(this.value, other.value) == 0;
-        }
+    // Constructor runs once for each enum constant
+    LengthUnit(double conversionFactorToFeet){
+        this.conversionFactorToFeet = conversionFactorToFeet;
     }
+
+    // Converts given value into FEET
+    public double toFeet(double value){
+        return value * conversionFactorToFeet;
+    }
+}
+
+// new one better design
+final class QuantityLength {
+    private final double value;
+    private final LengthUnit unit;
+
+    QuantityLength(double value, LengthUnit unit) {
+        if (unit == null) throw new IllegalArgumentException("Unit cannot be null");
+
+        this.value = value;
+        this.unit = unit;
+    }
+
+    // Converts this object to base unit (FEET)
+    private double toBaseUnit() {
+        // calls enum method to convert
+        return unit.toFeet(value);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        // same reference check
+        if (this == obj) return true;
+
+        // null and type check
+        if (obj == null || getClass() != this.getClass()) return false;
+
+        // safe casting
+        QuantityLength other = (QuantityLength) obj;
+
+        // compare using Double.compare()
+        return Double.compare(this.toBaseUnit(), other.toBaseUnit()) == 0;
+    }
+}
+
+
+public class QuantityMeasurementApp {
     public static void main(String[] args) {
-        Feet f1 = new Feet(1.0);
-        Feet f2 = new Feet(1.0);
-        System.out.println("Are equal: " + f1.equals(f2));
+        QuantityLength q1 = new QuantityLength(1.0,LengthUnit.FEET);
+        QuantityLength q2 = new QuantityLength(1.0,LengthUnit.INCH);
+
+        System.out.println(q1.equals(q2));
     }
 }
